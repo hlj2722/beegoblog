@@ -1,0 +1,13 @@
+*.exe
+*.exe~
+attachment/
+*.db
+data/
+*.log
+log/
+*.o
+*.a
+*.so
+_obj
+_test
+
