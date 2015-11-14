@@ -5,7 +5,7 @@ Beego Blog学习实践
 ###Ubuntu下配置和运行本博客指南
 
 ######0,安装Golang，配置环境变量 
-[参见](golang.org:https://golang.org/doc/install)
+[参考来源](https://golang.org:https://golang.org/doc/install)
 - 0.1 移除已经存在的老版本
 - 0.2 下载golang压缩包[fileName] 
 [下载地址](https://golang.org/dl/)
