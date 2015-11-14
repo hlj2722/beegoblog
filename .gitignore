@@ -1,0 +1,16 @@
+*.exe
+*.exe~
+*.go~
+*.html~
+*.tpl~
+attachment/
+*.db
+data/
+*.log
+log/
+*.o
+*.a
+*.so
+_obj
+_test
+
