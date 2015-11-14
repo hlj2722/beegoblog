@@ -1,0 +1,2 @@
+# beegoblog
+Beego Blog Demo
