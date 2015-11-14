@@ -1,5 +1,8 @@
 *.exe
 *.exe~
+*.go~
+*.html~
+*.tpl~
 attachment/
 *.db
 data/
