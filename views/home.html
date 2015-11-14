@@ -1,0 +1,43 @@
+<<<template "header">>>
+    	<title>首页 - 我的博客</title>
+  	</head>
+	
+	<body ng-app="homeApp"  ng-controller="homeCtrl">
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<<<template "navbar" .>>>
+			</div>	
+		</div>
+		
+		<div class="container">
+			<div class="row">
+					<div class="col-lg-9 col-md-8">
+		                <div class="page-header" ng-repeat="x in Topics">
+		                    <h1>
+								<a href="/topic/view?tid={{x.Id}}">{{x.Title}}</a>
+							</h1>
+		                    <h6 class="text-muted">文章发表于 {{x.Created}}，共有 {{x.Views}} 次浏览， {{x.ReplyCount}} 个评论</h6>	
+		                    <p>
+		                        {{x.Content}}
+		                    </p> 
+		                </div>
+					</div>
+					
+					<div class="col-lg-3 col-md-4 sidebar">
+							<div class = "list-group">
+								<a class="list-group-item" href="/" style="font-size: 12.5pt;font-weight:bold;background-color: #f5f5f5;">文章分类</a>
+								<a class = "list-group-item" ng-repeat="x in Categories" href="/?category={{x.Title}}">{{x.Title}}
+								</a>
+							</div>
+					</div>
+			</div>
+        	<input type="hidden" id = "category" name="category" value="<<<.category>>>">
+		<input type="hidden" id = "lable" name="lable" value="<<<.lable>>>">		
+	</body>			
+		<<<template "javascript">>>
+		
+		<!--AngularJS-->
+		<script type="text/javascript" src="/static/js/controllers/home.js"></script>		
+		<!---->
+
+</html>
