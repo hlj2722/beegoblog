@@ -15,7 +15,7 @@ import (
 
 const (
 	// 设置数据库路径
-	_DB_NAME = "data/beeblog.db"
+	_DB_NAME = "data/beegoblog.db"
 	// 设置数据库名称
 	_SQLITE3_DRIVER = "sqlite3"
 )

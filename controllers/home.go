@@ -4,7 +4,6 @@ import (
 	"beegoblog/models"
 
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 )
 
 type HomeController struct {
