@@ -1,0 +1,31 @@
+<<<template "header">>>
+    	<title>查看用户 - 我的博客</title>
+  	</head>
+
+	<body ng-app="user_viewApp"  ng-controller="user_viewCtrl">
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<<<template "navbar" .>>>
+			</div>	
+		</div>
+		
+
+		<div class="container">
+			<hr></hr>
+			<pre>用户：{{User.Name}}</pre>
+			<pre>密码：{{User.Password}}</pre>
+			<pre>创建时间：{{User.Created}}</pre>
+			<pre>修改时间：{{User.Updated}}</pre>
+		</div>
+
+
+		<input type="hidden" id = "uname" name="uname" value="<<<.uname>>>">
+	
+	</body>
+        <<<template "javascript">>>
+		
+		<!--AngularJS-->
+		<script type="text/javascript" src="/static/js/controllers/user.js"></script>		
+		<!---->
+
+</html>

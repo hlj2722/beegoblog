@@ -1,0 +1,47 @@
+<<<template "header">>>
+    	<title>用户 - 我的博客</title>
+  	</head>
+
+	<body ng-app="userApp"  ng-controller="userCtrl">
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<<<template "navbar" .>>>
+			</div>	
+		</div>
+		
+		<div class="container">
+			<h1>用户列表</h1>
+			<a type="submit" class="btn btn-default" href="/user/add">添加用户</a>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>用户</th>
+						<th>密码</th>
+						<th>创建时间</th>
+						<th>修改时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="x in Users">
+						<td>{{x.Id}}</td>
+						<td><a href="/user/view?uname={{x.Name}}">{{x.Name}}</a></td>
+						<td>{{x.Created}}</td>
+						<td>{{x.Updated}}</td>
+						<td>
+							<a href="/user/modify?uname={{x.Name}}">修改</a>
+							<a href="/user/delete?uname={{x.Name}}">删除</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+        <<<template "javascript">>>
+		
+		<!--AngularJS-->
+		<script type="text/javascript" src="/static/js/controllers/user.js"></script>		
+		<!---->
+
+</html>

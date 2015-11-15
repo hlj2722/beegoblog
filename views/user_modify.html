@@ -1,0 +1,37 @@
+<<<template "header">>>
+    	<title>修改用户 - 我的博客</title>
+  	</head>
+
+	<body ng-app="user_modifyApp"  ng-controller="user_modifyCtrl">
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<<<template "navbar" .>>>
+			</div>	
+		</div>
+		
+		<div class="container">
+			<h1>修改用户</h1>
+			<form method="POST" action="/user" enctype="multipart/form-data">
+				<input type="hidden" id = "uname" name="uname" value="<<<.uname>>>">
+				<input type="hidden" id = "isModify" name="isView" value="true">	
+				<div class="form-group">
+					<label>用户：</label>
+					<input type="text" class="form-control" name="uname" value="{{User.Name}}">
+				</div>
+				
+				<div class="form-group">
+					<label>密码：</label>
+					<input type="text" class="form-control" name="pwd" value="{{User.Password}}">
+				</div>
+				<button type="submit" class="btn btn-default">修改用户</button>
+			</form>
+		</div>
+	
+	</body>		
+		<<<template "javascript">>>
+		
+		<!--AngularJS-->
+		<script type="text/javascript" src="/static/js/controllers/user.js"></script>		
+		<!---->
+
+</html>
