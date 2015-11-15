@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Unknwon/com"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -27,7 +28,7 @@ func RegisterDB() {
 	}
 
 	// 注册模型
-	orm.RegisterModel(new(Category), new(Topic), new(Reply))
+	orm.RegisterModel(new(Category), new(Topic), new(Reply), new(User))
 	// 注册驱动（“sqlite3” 属于默认注册，此处代码可省略）
 	orm.RegisterDriver(_SQLITE3_DRIVER, orm.DR_Sqlite)
 	// 注册默认数据库
@@ -38,7 +39,11 @@ func RegisterDB() {
 func AddCategory(name string) error {
 	o := orm.NewOrm()
 
-	cate := &Category{Title: name}
+	cate := &Category{
+		Title:   name,
+		Created: time.Now(),
+		Updated: time.Now(),
+	}
 
 	// 查询数据
 	qs := o.QueryTable("category")
@@ -56,8 +61,8 @@ func AddCategory(name string) error {
 	return nil
 }
 
-//TODO:删除分类的同时，包含该分类的所有文章都删除
-//PS:采用事务避免出问题
+//删除分类的同时，包含该分类的所有文章都删除
+//采用事务避免出问题
 func DeleteCategory(id string) error {
 	cid, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
@@ -105,20 +110,22 @@ func GetAllCategories(isListAll bool) ([]*Category, error) {
 	cates := make([]*Category, 0)
 	qs := o.QueryTable("category")
 	var err error
+	beego.Alert("test------------------")
 	if isListAll {
+		beego.Alert("test------------------")
 		_, err = qs.All(&cates) //过滤得到文章数量TopicCount大于0的分类
 
 	} else {
 		_, err = qs.Filter("TopicCount__gt", 0).All(&cates) //过滤得到文章数量TopicCount大于0的分类
 	}
-
+	beego.Alert(cates)
 	return cates, err
 }
 
 ///endReigon
 
 ///region Topic
-func AddTopic(title, category, lable, content, attachment string) error {
+func AddTopic(title, category, lable, content, attachment, author string) error {
 	// 处理标签
 	lable = "$" + strings.Join(strings.Split(lable, " "), "#$") + "#"
 
@@ -130,6 +137,8 @@ func AddTopic(title, category, lable, content, attachment string) error {
 		Lables:     lable,
 		Content:    content,
 		Attachment: attachment,
+		Author:     author,
+		ReplyTime:  time.Now(),
 		Created:    time.Now(),
 		Updated:    time.Now(),
 	}
@@ -153,6 +162,8 @@ func AddTopic(title, category, lable, content, attachment string) error {
 
 	} else {
 		cate.Title = category
+		cate.Created = time.Now()
+		cate.Updated = time.Now()
 		cate.TopicCount = 1
 		_, err = o.Insert(cate)
 	}
@@ -179,8 +190,9 @@ func GetTopic(tid string) (*Topic, error) {
 	topic.Views++
 	_, err = o.Update(topic)
 
-	topic.Lables = strings.Replace(strings.Replace(
-		topic.Lables, "#", " ", -1), "$", "", -1)
+	topic.Lables =
+		strings.Replace(strings.Replace(topic.Lables, "#", " ", -1), "$", "", -1)
+
 	return topic, nil
 }
 
@@ -225,9 +237,13 @@ func ModifyTopic(tid, title, category, lable, content, attachment string) error 
 		err = qs.Filter("title", category).One(cate2)
 		if err == nil {
 			cate2.TopicCount++
+			cate2.Updated = time.Now()
 			_, err = o.Update(cate2)
 		} else {
 			cate2.Title = category
+			cate2.Created = time.Now()
+			cate2.Updated = time.Now()
+			cate2.TopicCount = 1
 			_, err = o.Insert(cate2)
 		}
 
@@ -281,6 +297,7 @@ func GetAllTopics(category, lable string, isDesc bool) (topics []*Topic, err err
 			qs = qs.Filter("category", category)
 		}
 		if len(lable) > 0 {
+			lable = strings.Trim(lable, " ")
 			qs = qs.Filter("lables__contains", "$"+lable+"#")
 		}
 		_, err = qs.OrderBy("-created").All(&topics)
@@ -305,6 +322,7 @@ func AddReply(tid, nickname, content string) error {
 		Name:    nickname,
 		Content: content,
 		Created: time.Now(),
+		Updated: time.Now(),
 	}
 	o := orm.NewOrm()
 	_, err = o.Insert(reply)
@@ -370,3 +388,79 @@ func DeleteReply(rid string) error {
 }
 
 ///endRegion
+
+///region User
+func AddUser(uname, pwd string) error {
+	o := orm.NewOrm()
+	user := &User{
+		Name:     uname,
+		Password: pwd,
+		Created:  time.Now(),
+		Updated:  time.Now(),
+	}
+
+	_, err := o.Insert(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteUser(uname string) error {
+	o := orm.NewOrm()
+
+	user := &User{Name: uname}
+	if o.Read(user) == nil {
+		_, err := o.Delete(user)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ModifyUser(uname, pwd string) error {
+	o := orm.NewOrm()
+	user := &User{Name: uname}
+	if o.Read(user) == nil {
+		user.Password = pwd
+		user.Updated = time.Now()
+		_, err := o.Update(user)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GetUser(uname string) (*User, error) {
+
+	o := orm.NewOrm()
+
+	user := new(User)
+
+	qs := o.QueryTable("user")
+	err := qs.Filter("name", uname).One(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func GetAllUsers(isDesc bool) (users []*User, err error) {
+
+	o := orm.NewOrm()
+
+	users = make([]*User, 0)
+	qs := o.QueryTable("user")
+	if isDesc {
+		_, err = qs.OrderBy("-created").All(&users)
+
+	} else {
+		_, err = qs.All(&users)
+	}
+	return users, err
+}
+
+///endregion

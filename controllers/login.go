@@ -21,6 +21,7 @@ func (this *LoginController) Get() {
 	this.TplNames = "login.html"
 }
 
+//TODO:从redis中读取用户密码配置表
 func (this *LoginController) Post() {
 	// 获取表单信息
 	uname := this.Input().Get("uname")
@@ -43,6 +44,7 @@ func (this *LoginController) Post() {
 	return
 }
 
+//TODO:从redis中读取用户密码配置表
 func checkAccount(ctx *context.Context) bool {
 	ck, err := ctx.Request.Cookie("uname")
 	if err != nil {

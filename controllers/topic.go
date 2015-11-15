@@ -14,12 +14,14 @@ type TopicController struct {
 }
 
 func (this *TopicController) Get() {
+
 	this.Data["IsTopic"] = true
 	this.TplNames = "topic.html"
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
 }
 
 func (this *TopicController) Load() {
+
 	topics, err := models.GetAllTopics("", "", false)
 	if err != nil {
 		beego.Error(err)
@@ -29,9 +31,19 @@ func (this *TopicController) Load() {
 }
 
 func (this *TopicController) Post() {
+
+	var author string
 	if !checkAccount(this.Ctx) {
 		this.Redirect("/login", 302)
 		return
+	} else {
+		ck, err := this.Ctx.Request.Cookie("uname")
+		if err == nil {
+			author = ck.Value
+		} else {
+			return
+		}
+
 	}
 
 	// 解析表单
@@ -59,8 +71,10 @@ func (this *TopicController) Post() {
 	}
 
 	if len(tid) == 0 {
-		err = models.AddTopic(title, category, lable, content, attachment)
+		//新增文章的时候加入作者
+		err = models.AddTopic(title, category, lable, content, attachment, author)
 	} else {
+		//如果其他人修改文章，作者不变
 		err = models.ModifyTopic(tid, title, category, lable, content, attachment)
 	}
 
