@@ -15,7 +15,7 @@
 				<div class="form-group">
 					<input id="name" type="text" class="form-control" name="name" placeholder="Enter category name">
 				</div>
-				<button type="submit" class="btn btn-default" onclick="return checkInput();">添加分类</button>
+				<button type="submit" class="btn btn-default" ng-click="checkInput($event);">添加分类</button>
 			</form>
 	      
 			<table class="table table-striped">
@@ -41,20 +41,15 @@
 			</table>
 		</div>
 	</body>
-	<<<template "javascript">>>
+	    <<<template "javascript">>>
 		
 		<!--AngularJS-->
 		<script type="text/javascript" src="/static/js/controllers/category.js"></script>		
 		<!---->
 		
-		<script type="text/javascript">
-		      	function checkInput() {
-		      		var uname = document.getElementById("name");
-		      		if (uname.value.length == 0) {
-		      			alert("请输入分类名称");
-		      			return false;
-		      		}
-		      	}
-				
-	    </script>
+		<!--ToolsJS-->
+		<script type="text/javascript" src="/static/js/tools.js"></script>		
+		<!---->
+		
+
 </html>

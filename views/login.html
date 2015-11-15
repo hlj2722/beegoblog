@@ -2,18 +2,18 @@
     	<title>登录 - 我的博客</title>
   	</head>
 	
-	<body>
+	<body ng-app = "loginApp" ng-controller = "loginCtrl">
 		<div class="container" style="width: 500px;">
 			<form class="form-horizontal" method="POST" action="/login">
 			  <div class="form-group">
-			    <label class="col-lg-4 control-label">请输入管理员帐号：</label>
+			    <label class="col-lg-4 control-label">帐号：</label>
 			    <div class="col-lg-6">
 			      <input id="uname" class="form-control" name="uname" placeholder="Account">
 			    </div>
 			  </div>
 
 			  <div class="form-group">
-			    <label class="col-lg-4 control-label">请输入管理员密码：</label>
+			    <label class="col-lg-4 control-label">密码：</label>
 			    <div class="col-lg-6">
 			      <input id="pwd" type="password" class="form-control" name="pwd" placeholder="Password">
 			    </div>
@@ -30,34 +30,24 @@
 			  </div>
 
 			  <div class="form-group">
-			    <div class="col-lg-offset-2 col-lg-10">
-			    	<a href="/login"><button type="submit" class="btn btn-default" onclick="return checkInput();">登录</button></a>
-			      	<button class="btn btn-default" onclick="return backToHome();">返回</button>
-			      	
+				<div class="col-lg-offset-2 col-lg-10">
+				    	<a href="/login"><button type="submit" class="btn btn-default" ng-click = "checkInput($event)">登录</button></a>
+			      	<button class="btn btn-default" ng-click ="backToHome()">返回</button>
 			    </div>
 			  </div>
 			</form>
 		</div>
 	</body>	
-		<script type="text/javascript">
-				      	function backToHome() {
-				      		window.location.href = "/";
-				      		return false;
-				      	}
+	
+	    <<<template "javascript">>>
+		
+		<!--AngularJS-->
+		<script type="text/javascript" src="/static/js/controllers/login.js"></script>		
+		<!---->
+		
+		<!--ToolsJS-->
+		<script type="text/javascript" src="/static/js/tools.js"></script>		
+		<!---->
 
-				      	function checkInput() {
-				      		var uname = document.getElementById("uname");
-				      		if (uname.value.length == 0) {
-				      			alert("请输入管理员帐号");
-				      			return false;
-				      		}
-
-				      		var pwd = document.getElementById("pwd");
-				      		if (pwd.value.length == 0) {
-				      			alert("请输入管理员密码");
-				      			return false;
-				      		}
-				      	}
-		</script>
 	
 </html>
