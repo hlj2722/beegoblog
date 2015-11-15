@@ -20,7 +20,7 @@ func (this *UserController) Get() {
 
 func (this *UserController) Load() {
 
-	users, err := models.GetAllUsers(false)
+	users, err := models.GetAllUsersRedis(false)
 
 	if err != nil {
 		beego.Error(err)
@@ -36,7 +36,7 @@ func (this *UserController) Post() {
 		this.Redirect("/login", 302)
 		return
 	}
-
+	beego.Alert("=======================")
 	// 解析表单
 	uname := this.Input().Get("uname")
 	pwd := this.Input().Get("pwd")
@@ -46,11 +46,11 @@ func (this *UserController) Post() {
 	beego.Alert(isView)
 	var err error
 	if isAdd == "true" {
-
-		err = models.AddUser(uname, pwd)
+		beego.Alert("=======================")
+		err = models.AddUserRedis(uname, pwd)
 	} else if isView == "true" {
-
-		err = models.ModifyUser(uname, pwd)
+		beego.Alert("=======================")
+		err = models.ModifyUserRedis(uname, pwd)
 	}
 
 	if err != nil {
@@ -71,16 +71,17 @@ func (this *UserController) Add() {
 }
 
 func (this *UserController) Delete() {
+	beego.Alert("=======================")
 	if !checkAccount(this.Ctx) {
 		this.Redirect("/login", 302)
 		return
 	}
-
-	err := models.DeleteUser(this.Input().Get("uname"))
+	beego.Alert(this.Input().Get("uname"))
+	err := models.DeleteUserRedis(this.Input().Get("uname"))
 	if err != nil {
 		beego.Error(err)
 	}
-
+	beego.Alert("=======================")
 	this.Redirect("/user", 302)
 }
 
@@ -99,7 +100,7 @@ func (this *UserController) Modify() {
 func (this *UserController) LoadModify() {
 
 	uname := this.Input().Get("uname")
-	user, err := models.GetUser(uname)
+	user, err := models.GetUserRedis(uname)
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)
@@ -123,7 +124,7 @@ func (this *UserController) View() {
 func (this *UserController) LoadView() {
 	uname := this.Input().Get("uname")
 
-	user, err := models.GetUser(uname)
+	user, err := models.GetUserRedis(uname)
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)

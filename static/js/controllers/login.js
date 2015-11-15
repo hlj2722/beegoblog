@@ -1,6 +1,8 @@
 angular.module('loginApp', []).controller('loginCtrl', function($scope, $http) {
-	$scope.backToHome = function () {
+	$scope.backToHome = function ($event) {
       		window.location.href = "/";
+            	E($event).stop();
+			E($event).prevent();			
      }
 	
     $scope.checkInput = function ($event) {

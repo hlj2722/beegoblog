@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/mattn/go-sqlite3"
 	"strconv"
@@ -89,7 +88,6 @@ func GetAllCategories(isListAll bool) ([]*Category, error) {
 	} else {
 		_, err = qs.Filter("TopicCount__gt", 0).All(&cates) //过滤得到文章数量TopicCount大于0的分类
 	}
-	beego.Alert(cates)
 	return cates, err
 }
 

@@ -1,10 +1,9 @@
 package models
 
 import (
-	"time"
-
 	"github.com/astaxie/beego/orm"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 ///region User
@@ -27,27 +26,33 @@ func AddUser(uname, pwd string) error {
 func DeleteUser(uname string) error {
 	o := orm.NewOrm()
 
-	user := &User{Name: uname}
-	if o.Read(user) == nil {
-		_, err := o.Delete(user)
-		if err != nil {
-			return err
-		}
+	qs := o.QueryTable("user").Filter("Name", uname)
+
+	_, err := qs.Delete()
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 
 func ModifyUser(uname, pwd string) error {
 	o := orm.NewOrm()
-	user := &User{Name: uname}
-	if o.Read(user) == nil {
-		user.Password = pwd
-		user.Updated = time.Now()
-		_, err := o.Update(user)
-		if err != nil {
-			return err
-		}
+
+	user := new(User)
+	qs := o.QueryTable("user").Filter("Name", uname)
+	err := qs.Filter("name", uname).One(user)
+	if err != nil {
+		return err
 	}
+
+	user.Password = pwd
+	user.Updated = time.Now()
+	_, err = o.Update(user)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

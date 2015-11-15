@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"beegoblog/models"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 )
@@ -21,16 +22,15 @@ func (this *LoginController) Get() {
 	this.TplNames = "login.html"
 }
 
-//TODO:从redis中读取用户密码配置表
 func (this *LoginController) Post() {
+
 	// 获取表单信息
 	uname := this.Input().Get("uname")
 	pwd := this.Input().Get("pwd")
 	autoLogin := this.Input().Get("autoLogin") == "on"
 
 	// 验证用户名及密码
-	if uname == beego.AppConfig.String("adminName") &&
-		pwd == beego.AppConfig.String("adminPass") {
+	if uname == beego.AppConfig.String("adminName") && pwd == beego.AppConfig.String("adminPass") {
 		maxAge := 0
 		if autoLogin {
 			maxAge = 1<<31 - 1
@@ -38,13 +38,23 @@ func (this *LoginController) Post() {
 
 		this.Ctx.SetCookie("uname", uname, maxAge, "/")
 		this.Ctx.SetCookie("pwd", pwd, maxAge, "/")
+	} else {
+
+		user, err := models.GetUser(uname)
+		if err == nil && pwd == user.Password {
+			maxAge := 0
+			if autoLogin {
+				maxAge = 1<<31 - 1
+			}
+
+			this.Ctx.SetCookie("uname", uname, maxAge, "/")
+			this.Ctx.SetCookie("pwd", pwd, maxAge, "/")
+		}
 	}
 
 	this.Redirect("/", 302)
-	return
 }
 
-//TODO:从redis中读取用户密码配置表
 func checkAccount(ctx *context.Context) bool {
 	ck, err := ctx.Request.Cookie("uname")
 	if err != nil {
@@ -59,6 +69,16 @@ func checkAccount(ctx *context.Context) bool {
 	}
 
 	pwd := ck.Value
-	return uname == beego.AppConfig.String("adminName") &&
-		pwd == beego.AppConfig.String("adminPass")
+
+	// 验证用户名及密码
+	if uname == beego.AppConfig.String("adminName") && pwd == beego.AppConfig.String("adminPass") {
+		return true
+	} else {
+
+		user, err := models.GetUser(uname)
+		if err == nil && pwd == user.Password {
+			return true
+		}
+	}
+	return false
 }
