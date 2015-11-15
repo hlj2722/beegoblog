@@ -9,14 +9,14 @@ type CategoryController struct {
 	beego.Controller
 }
 
-func  (this *CategoryController) Get() {
+func (this *CategoryController) Get() {
 	this.Data["IsCategory"] = true
 	this.TplNames = "category.html"
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
 }
 
-func  (this *CategoryController) Load() {
-	categories, err := models.GetAllCategories()
+func (this *CategoryController) Load() {
+	categories, err := models.GetAllCategories(true)
 	if err != nil {
 		beego.Error(err)
 	}
@@ -26,33 +26,31 @@ func  (this *CategoryController) Load() {
 
 func (this *CategoryController) Post() {
 
-		name := this.Input().Get("name")
-		if len(name) == 0 {
-			return
-		}
+	name := this.Input().Get("name")
+	if len(name) == 0 {
+		return
+	}
 
-		err := models.AddCategory(name)
-		if err != nil {
-			beego.Error(err)
-		}
+	err := models.AddCategory(name)
+	if err != nil {
+		beego.Error(err)
+	}
 
-		this.Redirect("/category", 302)
+	this.Redirect("/category", 302)
 
 }
 
 func (this *CategoryController) Delete() {
-	
-		id := this.Input().Get("id")
-		if len(id) == 0 {
-			return
-		}
 
-		err := models.DeleteCategory(id)
-		if err != nil {
-			beego.Error(err)
-		}
+	id := this.Input().Get("id")
+	if len(id) == 0 {
+		return
+	}
 
-		this.Redirect("/category", 302)
+	err := models.DeleteCategory(id)
+	if err != nil {
+		beego.Error(err)
+	}
+
+	this.Redirect("/category", 302)
 }
-
-

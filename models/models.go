@@ -19,8 +19,6 @@ const (
 	_SQLITE3_DRIVER = "sqlite3"
 )
 
-
-
 func RegisterDB() {
 	// 检查数据库文件
 	if !com.IsExist(_DB_NAME) {
@@ -35,7 +33,6 @@ func RegisterDB() {
 	// 注册默认数据库
 	orm.RegisterDataBase("default", _SQLITE3_DRIVER, _DB_NAME, 10)
 }
-
 
 ///region  Category
 func AddCategory(name string) error {
@@ -59,7 +56,8 @@ func AddCategory(name string) error {
 	return nil
 }
 
-
+//TODO:删除分类的同时，包含该分类的所有文章都删除
+//PS:采用事务避免出问题
 func DeleteCategory(id string) error {
 	cid, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
@@ -68,25 +66,56 @@ func DeleteCategory(id string) error {
 
 	o := orm.NewOrm()
 
-	cate := &Category{Id: cid}
-	_, err = o.Delete(cate)
-    //TODO:删除分类的同时，包含该分类的所有文章都删除
-	return err
+	cateDel := &Category{Id: cid}
+	cateTemp := new(Category)
+
+	err = o.QueryTable("category").Filter("id", cid).One(cateTemp)
+	if err != nil {
+		return err
+	}
+
+	//事务中删除分类和该分类的所有文章
+	if errB := o.Begin(); errB == nil {
+		if _, errDelTopic := o.QueryTable("topic").Filter("Category", cateTemp.Title).Delete(); errDelTopic == nil {
+
+			if _, errDelCate := o.Delete(cateDel); errDelCate == nil {
+				if errC := o.Commit(); errC == nil {
+					return nil
+				} else {
+					if errR := o.Rollback(); errR == nil {
+						return errC
+					} else {
+						return errR
+					}
+				}
+			} else {
+				return errDelCate
+			}
+		} else {
+			return errDelTopic
+		}
+	} else {
+		return errB
+	}
+
 }
 
-func GetAllCategories() ([]*Category, error) {
+func GetAllCategories(isListAll bool) ([]*Category, error) {
 	o := orm.NewOrm()
-
 	cates := make([]*Category, 0)
-
 	qs := o.QueryTable("category")
-	_, err := qs.All(&cates)
+	var err error
+	if isListAll {
+		_, err = qs.All(&cates) //过滤得到文章数量TopicCount大于0的分类
+
+	} else {
+		_, err = qs.Filter("TopicCount__gt", 0).All(&cates) //过滤得到文章数量TopicCount大于0的分类
+	}
+
 	return cates, err
 }
 
-///endReigon 
-
-
+///endReigon
 
 ///region Topic
 func AddTopic(title, category, lable, content, attachment string) error {
@@ -114,10 +143,17 @@ func AddTopic(title, category, lable, content, attachment string) error {
 	qs := o.QueryTable("category")
 	err = qs.Filter("title", category).One(cate)
 	if err == nil {
-		cate.TopicCount++
+		if cate.TopicCount > 0 {
+			cate.TopicCount++
+		} else {
+			cate.TopicCount = 1
+		}
+
 		_, err = o.Update(cate)
-	}else{
+
+	} else {
 		cate.Title = category
+		cate.TopicCount = 1
 		_, err = o.Insert(cate)
 	}
 
@@ -175,8 +211,8 @@ func ModifyTopic(tid, title, category, lable, content, attachment string) error 
 	}
 
 	// 更新分类统计
-	if  oldCate != category{
-		
+	if oldCate != category {
+
 		cate1 := new(Category)
 		qs := o.QueryTable("category")
 		err = qs.Filter("title", oldCate).One(cate1)
@@ -184,26 +220,23 @@ func ModifyTopic(tid, title, category, lable, content, attachment string) error 
 			cate1.TopicCount--
 			_, err = o.Update(cate1)
 		}
-		
-		
-        	cate2 := new(Category)
+
+		cate2 := new(Category)
 		err = qs.Filter("title", category).One(cate2)
 		if err == nil {
 			cate2.TopicCount++
 			_, err = o.Update(cate2)
-		}else{
+		} else {
 			cate2.Title = category
 			_, err = o.Insert(cate2)
 		}
-		
-		
+
 	}
 
 	// 删除旧的附件
-	if oldAttach != attachment{
+	if oldAttach != attachment {
 		os.Remove(path.Join("attachment", oldAttach))
 	}
-
 
 	return nil
 }
@@ -226,7 +259,6 @@ func DeleteTopic(tid string) error {
 		}
 	}
 
-
 	cate := new(Category)
 	qs := o.QueryTable("category")
 	err = qs.Filter("title", oldCate).One(cate)
@@ -238,17 +270,17 @@ func DeleteTopic(tid string) error {
 	return err
 }
 
-func GetAllTopics(category , lable string, isDesc bool) (topics []*Topic, err error) {
+func GetAllTopics(category, lable string, isDesc bool) (topics []*Topic, err error) {
 	o := orm.NewOrm()
 
 	topics = make([]*Topic, 0)
 
 	qs := o.QueryTable("topic")
 	if isDesc {
-        if len(category) > 0{
+		if len(category) > 0 {
 			qs = qs.Filter("category", category)
 		}
-        if len(lable) > 0{
+		if len(lable) > 0 {
 			qs = qs.Filter("lables__contains", "$"+lable+"#")
 		}
 		_, err = qs.OrderBy("-created").All(&topics)
@@ -260,8 +292,6 @@ func GetAllTopics(category , lable string, isDesc bool) (topics []*Topic, err er
 }
 
 ///endRegion
-
-
 
 ///region Reply
 func AddReply(tid, nickname, content string) error {

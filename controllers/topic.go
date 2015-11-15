@@ -13,15 +13,13 @@ type TopicController struct {
 	beego.Controller
 }
 
-
-
 func (this *TopicController) Get() {
 	this.Data["IsTopic"] = true
 	this.TplNames = "topic.html"
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
 }
 
-func (this *TopicController) Load(){
+func (this *TopicController) Load() {
 	topics, err := models.GetAllTopics("", "", false)
 	if err != nil {
 		beego.Error(err)
@@ -102,13 +100,12 @@ func (this *TopicController) Modify() {
 		this.Redirect("/login", 302)
 		return
 	}
-    
+
 	this.Data["tid"] = this.Input().Get("tid")
 	this.TplNames = "topic_modify.html"
 	this.Data["IsLogin"] = true
 
 }
-
 
 func (this *TopicController) LoadModify() {
 
@@ -123,19 +120,16 @@ func (this *TopicController) LoadModify() {
 	this.Data["json"] = &topic
 	this.ServeJson()
 
-	
 }
-
 
 func (this *TopicController) View() {
 	tid := this.Input().Get("tid")
 	this.Data["tid"] = tid
-	
+
 	this.TplNames = "topic_view.html"
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
-	
-}
 
+}
 
 func (this *TopicController) LoadView() {
 	tid := this.Input().Get("tid")
@@ -147,27 +141,22 @@ func (this *TopicController) LoadView() {
 		return
 	}
 
-
 	replies, err := models.GetAllReplies(tid)
 	if err != nil {
 		beego.Error(err)
 		return
 	}
 
-    data := &struct {
-						Topic *models.Topic
-						Lables []string
-						Replies []*models.Reply
-				 }{
-		Topic:topic,
-		Lables:strings.Split(topic.Lables, " "),
-		Replies:replies, 
+	data := &struct {
+		Topic   *models.Topic
+		Lables  []string
+		Replies []*models.Reply
+	}{
+		Topic:   topic,
+		Lables:  strings.Split(topic.Lables, " "),
+		Replies: replies,
 	}
-	
-	
 
 	this.Data["json"] = data
 	this.ServeJson()
 }
-
-
