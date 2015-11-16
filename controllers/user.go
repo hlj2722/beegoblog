@@ -19,8 +19,14 @@ func (this *UserController) Get() {
 }
 
 func (this *UserController) Load() {
-
-	users, err := models.GetAllUsersRedis(false)
+	var users []*(models.User)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		users, err = models.GetAllUsersRedis(false)
+	default:
+		users, err = models.GetAllUsers(false)
+	}
 
 	if err != nil {
 		beego.Error(err)
@@ -36,21 +42,29 @@ func (this *UserController) Post() {
 		this.Redirect("/login", 302)
 		return
 	}
-	beego.Alert("=======================")
+
 	// 解析表单
 	uname := this.Input().Get("uname")
 	pwd := this.Input().Get("pwd")
 	isView := this.Input().Get("isView")
 	isAdd := this.Input().Get("isAdd")
-	beego.Alert(isAdd)
-	beego.Alert(isView)
 	var err error
 	if isAdd == "true" {
-		beego.Alert("=======================")
-		err = models.AddUserRedis(uname, pwd)
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			err = models.AddUserRedis(uname, pwd)
+		default:
+			err = models.AddUser(uname, pwd)
+		}
+
 	} else if isView == "true" {
-		beego.Alert("=======================")
-		err = models.ModifyUserRedis(uname, pwd)
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			err = models.ModifyUserRedis(uname, pwd)
+		default:
+			err = models.ModifyUser(uname, pwd)
+		}
+
 	}
 
 	if err != nil {
@@ -77,11 +91,17 @@ func (this *UserController) Delete() {
 		return
 	}
 	beego.Alert(this.Input().Get("uname"))
-	err := models.DeleteUserRedis(this.Input().Get("uname"))
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.DeleteUserRedis(this.Input().Get("uname"))
+	default:
+		err = models.DeleteUser(this.Input().Get("uname"))
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
-	beego.Alert("=======================")
 	this.Redirect("/user", 302)
 }
 
@@ -100,7 +120,15 @@ func (this *UserController) Modify() {
 func (this *UserController) LoadModify() {
 
 	uname := this.Input().Get("uname")
-	user, err := models.GetUserRedis(uname)
+	var user *(models.User)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		user, err = models.GetUserRedis(uname)
+	default:
+		user, err = models.GetUser(uname)
+	}
+
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)
@@ -123,8 +151,15 @@ func (this *UserController) View() {
 
 func (this *UserController) LoadView() {
 	uname := this.Input().Get("uname")
+	var user *(models.User)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		user, err = models.GetUserRedis(uname)
+	default:
+		user, err = models.GetUser(uname)
+	}
 
-	user, err := models.GetUserRedis(uname)
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)

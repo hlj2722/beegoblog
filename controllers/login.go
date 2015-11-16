@@ -40,7 +40,15 @@ func (this *LoginController) Post() {
 		this.Ctx.SetCookie("pwd", pwd, maxAge, "/")
 	} else {
 
-		user, err := models.GetUser(uname)
+		var user *(models.User)
+		var err error
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			user, err = models.GetUserRedis(uname)
+		default:
+			user, err = models.GetUser(uname)
+		}
+
 		if err == nil && pwd == user.Password {
 			maxAge := 0
 			if autoLogin {
@@ -69,13 +77,21 @@ func checkAccount(ctx *context.Context) bool {
 	}
 
 	pwd := ck.Value
-
+	beego.Alert(beego.AppConfig.String("adminName"))
+	beego.Alert(beego.AppConfig.String("adminPass"))
 	// 验证用户名及密码
 	if uname == beego.AppConfig.String("adminName") && pwd == beego.AppConfig.String("adminPass") {
 		return true
 	} else {
 
-		user, err := models.GetUser(uname)
+		var user *(models.User)
+		var err error
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			user, err = models.GetUserRedis(uname)
+		default:
+			user, err = models.GetUser(uname)
+		}
 		if err == nil && pwd == user.Password {
 			return true
 		}

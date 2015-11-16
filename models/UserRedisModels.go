@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
+	"strings"
 )
 
 ///region UserRedis
@@ -18,7 +19,7 @@ func AddUserRedis(uname, pwd string) error {
 	//延迟自动关闭连接
 	defer conn.Close()
 	//Redis命令调用
-	conn.Do("SET", "user:"+uname, pwd)
+	conn.Do("SET", "uname="+uname, pwd)
 	return nil
 }
 
@@ -29,7 +30,7 @@ func DeleteUserRedis(uname string) error {
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	conn.Do("DEL", "user:"+uname)
+	conn.Do("DEL", "uname="+uname)
 	return nil
 }
 
@@ -39,15 +40,15 @@ func ModifyUserRedis(uname, pwd string) error {
 }
 
 func GetUserRedis(uname string) (*User, error) {
-	println("==================")
-	println(beego.AppConfig.String("requirepass"))
+	beego.Alert(uname)
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return nil, err
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	pwd, err := redis.String(conn.Do("GET", "user:"+uname))
+	pwd, err := redis.String(conn.Do("GET", "uname="+uname))
+
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +56,7 @@ func GetUserRedis(uname string) (*User, error) {
 		Name:     uname,
 		Password: pwd,
 	}
+
 	return user, nil
 
 }
@@ -67,7 +69,7 @@ func GetAllUsersRedis(isDesc bool) (users []*User, err error) {
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	keys, err := redis.Values(conn.Do("KEYS", "user:*"))
+	keys, err := redis.Values(conn.Do("KEYS", "uname=*"))
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +79,9 @@ func GetAllUsersRedis(isDesc bool) (users []*User, err error) {
 		if err != nil {
 			return nil, err
 		}
+		beego.Alert(strings.TrimLeft(string(key.([]byte)), "uname="))
 		user := &User{
-			Name:     string(key.([]byte)),
+			Name:     strings.TrimLeft(string(key.([]byte)), "uname="),
 			Password: value,
 		}
 		users = append(users, user)
