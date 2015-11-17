@@ -63,26 +63,26 @@ firefox http://localhost:8080
 </pre>
 
 
-######6 启用Redis替换SQLite
+######4 启用Redis替换SQLite
 
-- 6.1 安装Redis
+- 4.1 安装Redis
 <pre>
 sudo apt-get update
 sudo apt-get install redis-server
 </pre>
 
-- 6.2 运行Redis
+- 4.2 运行Redis
 <pre>
 sudo redis-server
 sudo redis-cli
 </pre>
 
-- 6.3 配置Redis
+- 4.3 配置Redis
 <pre>
 sudo CONFIG SET requirepass 123
 </pre>
 
-- 6.4 替换SQLite
+- 4.4 替换SQLite
 <pre>
 sudo gedit $GOPATH/src/beegoblog/conf/app.conf
 </pre>
