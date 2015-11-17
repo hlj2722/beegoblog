@@ -77,8 +77,7 @@ func checkAccount(ctx *context.Context) bool {
 	}
 
 	pwd := ck.Value
-	beego.Alert(beego.AppConfig.String("adminName"))
-	beego.Alert(beego.AppConfig.String("adminPass"))
+
 	// 验证用户名及密码
 	if uname == beego.AppConfig.String("adminName") && pwd == beego.AppConfig.String("adminPass") {
 		return true

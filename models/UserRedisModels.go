@@ -62,7 +62,7 @@ func GetUserRedis(uname string) (*User, error) {
 }
 
 func GetAllUsersRedis(isDesc bool) (users []*User, err error) {
-
+	_ = isDesc
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return nil, err

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"beegoblog/tools"
+	_ "beegoblog/tools"
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
 	"strings"
@@ -17,15 +17,16 @@ func AddReplyRedis(tid, nickname, content string) error {
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	guid := tools.GetGuid() //得到GUID
+	guid, _ := conn.Do("HINCRBY", "reply", "guid", 1)
+	guidStr := string(guid.([]byte))
 	timeNow := time.Now()
 	conn.Do("HMSET", "reply",
-		guid+"_Id", guid,
-		guid+"_Tid", tid,
-		guid+"_Name", nickname,
-		guid+"_Content", content,
-		guid+"_Created", timeNow,
-		guid+"_Updated", timeNow)
+		guidStr+"_Id", guidStr,
+		guidStr+"_Tid", tid,
+		guidStr+"_Name", nickname,
+		guidStr+"_Content", content,
+		guidStr+"_Created", timeNow.Format("2006-01-02 15:04:05"),
+		guidStr+"_Updated", timeNow.Format("2006-01-02 15:04:05"))
 
 	conn.Do("HSET", "topic", tid+"_ReplyTime", timeNow)
 	conn.Do("HINCRBY", "topic", tid+"_ReplyCount", 1)
@@ -43,30 +44,32 @@ func GetAllRepliesRedis(tid string) (replies []*Reply, err error) {
 	defer conn.Close()
 
 	replyKeys, err := redis.Values(conn.Do("HKEYS", "reply"))
-	idValues := make([]string, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, replyKey := range replyKeys {
 		replyKeyStr := string(replyKey.([]byte))
 		if strings.Contains(replyKeyStr, "_Id") {
-			idValue, _ := conn.Do("HGET", "reply", replyKeyStr+"_Id")
-			idValues = append(idValues, string(idValue.([]byte)))
-		}
-	}
-	for _, idValue := range idValues {
-		reply := new(Reply)
-		Id, _ := conn.Do("HGET", "reply", idValue+"_Id")
-		Tid, _ := conn.Do("HGET", "reply", idValue+"_Tid")
-		Name, _ := conn.Do("HGET", "reply", idValue+"_Name")
-		Content, _ := conn.Do("HGET", "reply", idValue+"_Content")
-		//Created, _ := conn.Do("HGET", "reply", idValue+"_Created")
-		//Updated, _ := conn.Do("HGET", "reply", idValue+"_Updated")
+			idValue, _ := conn.Do("HGET", "reply", replyKeyStr)
+			idValueStr := string(idValue.([]byte))
 
-		reply.Id = int64(Id.(int64))
-		reply.Tid = int64(Tid.(int64))
-		reply.Name = string(Name.([]byte))
-		reply.Content = string(Content.([]byte))
-		//reply.Created =
-		//reply.Updated =
-		replies = append(replies, reply)
+			reply := new(Reply)
+			Id, _ := conn.Do("HGET", "reply", idValueStr+"_Id")
+			Tid, _ := conn.Do("HGET", "reply", idValueStr+"_Tid")
+			Name, _ := conn.Do("HGET", "reply", idValueStr+"_Name")
+			Content, _ := conn.Do("HGET", "reply", idValueStr+"_Content")
+			Created, _ := conn.Do("HGET", "reply", idValueStr+"_Created")
+			Updated, _ := conn.Do("HGET", "reply", idValueStr+"_Updated")
+
+			reply.Id = int64(Id.(int64))
+			reply.Tid = int64(Tid.(int64))
+			reply.Name = string(Name.([]byte))
+			reply.Content = string(Content.([]byte))
+			reply.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))
+			reply.Updated, _ = time.Parse("2006-01-02 15:04:05", string(Updated.([]byte)))
+			replies = append(replies, reply)
+		}
 	}
 
 	return
@@ -99,20 +102,22 @@ func DeleteReplyRedis(rid string) error {
 
 	//获取最近的评论时间
 	replyKeys, err := redis.Values(conn.Do("HKEYS", "reply"))
-	updatedValues := make([]string, 0)
+	if err != nil {
+		return err
+	}
+
+	var replyTime string
 	for _, replyKey := range replyKeys {
 		replyKeyStr := string(replyKey.([]byte))
 		if strings.Contains(replyKeyStr, "_Updated") {
-			updatedValue, _ := conn.Do("HGET", "reply", replyKeyStr+"_Updated")
-			updatedValues = append(updatedValues, string(updatedValue.([]byte)))
-		}
-	}
-	var replyTime string
-	for i := 0; i < len(updatedValues); i++ {
-		if updatedValues[i] > replyTime {
-			replyTime = updatedValues[i]
-		}
+			updatedValue, _ := conn.Do("HGET", "reply", replyKeyStr)
+			updatedValueStr := string(updatedValue.([]byte))
 
+			if updatedValueStr > replyTime {
+				replyTime = updatedValueStr
+			}
+
+		}
 	}
 
 	//更新Topic

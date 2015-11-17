@@ -85,12 +85,12 @@ func (this *UserController) Add() {
 }
 
 func (this *UserController) Delete() {
-	beego.Alert("=======================")
+
 	if !checkAccount(this.Ctx) {
 		this.Redirect("/login", 302)
 		return
 	}
-	beego.Alert(this.Input().Get("uname"))
+
 	var err error
 	switch beego.AppConfig.String("database") {
 	case "redis":

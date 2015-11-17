@@ -1,7 +1,7 @@
 package models
 
 import (
-	"beegoblog/tools"
+	_ "beegoblog/tools"
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
 	"strings"
@@ -18,36 +18,34 @@ func AddCategoryRedis(name string) error {
 	defer conn.Close()
 	//判断是否已经存在该分类
 	categoryKeys, err := redis.Values(conn.Do("HKEYS", "category"))
-	titleValues := make([]string, 0)
+	if err != nil {
+		return err
+	}
+
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Title") {
-			titleValue, _ := conn.Do("HGET", "category", categoryKeyStr+"_Title")
-			titleValues = append(titleValues, string(titleValue.([]byte)))
+			titleValue, _ := conn.Do("HGET", "category", categoryKeyStr)
+			if string(titleValue.([]byte)) == name {
+				return nil
+			}
 		}
-	}
-
-	for i := 0; i < len(titleValues); i++ {
-		if titleValues[i] == name {
-			return nil
-		}
-
 	}
 
 	//新增一个分类
-	guid := tools.GetGuid() //得到GUID
+	guid, _ := conn.Do("HINCRBY", "category", "guid", 1) //生成Guid,并保存到键category的guid域
+	guidStr := string(guid.([]byte))
 	timeNow := time.Now()
 	conn.Do("HMSET", "category",
-		guid+"_Id", guid,
-		guid+"_Title", name,
-		guid+"_Views", 0,
-		guid+"_TopicCount", 0,
-		guid+"_Created", timeNow,
-		guid+"_Updated", timeNow)
+		guidStr+"_Id", guidStr,
+		guidStr+"_Title", name,
+		guidStr+"_Views", 0,
+		guidStr+"_TopicCount", 0,
+		guidStr+"_Created", timeNow.Format("2006-01-02 15:04:05"),
+		guidStr+"_Updated", timeNow.Format("2006-01-02 15:04:05"))
 	return nil
 }
 
-//TODO:删除分类后相应文章的删除
 func DeleteCategoryRedis(id string) error {
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
@@ -55,6 +53,9 @@ func DeleteCategoryRedis(id string) error {
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
+
+	//暂存删除的分类
+	category, _ := conn.Do("HGET", "category", id+"_Title")
 
 	//删除Category
 	conn.Do("HDEL", "category",
@@ -64,10 +65,43 @@ func DeleteCategoryRedis(id string) error {
 		id+"_TopicCount",
 		id+"_Created",
 		id+"_Updated")
+
+	//删除分类下的所有文章
+	topicKeys, err := redis.Values(conn.Do("HKEYS", "topic"))
+	if err != nil {
+		return err
+	}
+
+	for _, topicKey := range topicKeys {
+		topicKeyStr := string(topicKey.([]byte))
+		if strings.Contains(topicKeyStr, "_Category") {
+			categoryValue, _ := conn.Do("HGET", "topic", topicKeyStr)
+			categoryValueStr := string(categoryValue.([]byte))
+
+			if categoryValueStr == category {
+				idStr := strings.TrimRight(topicKeyStr, "_Category")
+
+				conn.Do("HDEL", "topic",
+					idStr+"_Id",
+					idStr+"_Title",
+					idStr+"_Category",
+					idStr+"_Lables",
+					idStr+"_Content",
+					idStr+"_Attachment",
+					idStr+"_Views",
+					idStr+"_Author",
+					idStr+"_ReplyTime",
+					idStr+"_ReplyCount",
+					idStr+"_Created",
+					idStr+"_Updated")
+			}
+
+		}
+	}
+
 	return nil
 }
 
-//TODO:isListAll为false的情况完善
 func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
 	_ = isListAll
 	conn, err := redis.Dial("tcp", "localhost:6379")
@@ -78,30 +112,38 @@ func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
 	defer conn.Close()
 
 	categoryKeys, err := redis.Values(conn.Do("HKEYS", "category"))
-	idValues := make([]string, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Id") {
-			idValue, _ := conn.Do("HGET", "category", categoryKeyStr+"_Id")
-			idValues = append(idValues, string(idValue.([]byte)))
-		}
-	}
-	for _, idValue := range idValues {
-		category := new(Category)
-		Id, _ := conn.Do("HGET", "category", idValue+"_Id")
-		Title, _ := conn.Do("HGET", "category", idValue+"_Title")
-		Views, _ := conn.Do("HGET", "category", idValue+"_Views")
-		TopicCount, _ := conn.Do("HGET", "category", idValue+"_TopicCount")
-		//Created, _ := conn.Do("HGET", "category", idValue+"_Created")
-		//Updated, _ := conn.Do("HGET", "category", idValue+"_Updated")
+			idValue, _ := conn.Do("HGET", "category", categoryKeyStr)
+			idValueStr := string(idValue.([]byte))
 
-		category.Id = int64(Id.(int64))
-		category.Title = string(Title.([]byte))
-		category.Views = int64(Views.(int64))
-		category.TopicCount = int64(TopicCount.(int64))
-		//category.Created =
-		//category.Updated =
-		categories = append(categories, category)
+			category := new(Category)
+			Id, _ := conn.Do("HGET", "category", idValueStr+"_Id")
+			Title, _ := conn.Do("HGET", "category", idValueStr+"_Title")
+			Views, _ := conn.Do("HGET", "category", idValueStr+"_Views")
+			TopicCount, _ := conn.Do("HGET", "category", idValueStr+"_TopicCount")
+			Created, _ := conn.Do("HGET", "category", idValueStr+"_Created")
+			Updated, _ := conn.Do("HGET", "category", idValueStr+"_Updated")
+
+			category.Id = int64(Id.(int64))
+			category.Title = string(Title.([]byte))
+			category.Views = int64(Views.(int64))
+			category.TopicCount = int64(TopicCount.(int64))
+			category.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))
+			category.Updated, _ = time.Parse("2006-01-02 15:04:05", string(Updated.([]byte)))
+
+			if isListAll {
+				categories = append(categories, category)
+			} else if category.TopicCount >= 0 {
+				categories = append(categories, category)
+			}
+
+		}
 	}
 
 	return

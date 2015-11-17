@@ -12,8 +12,17 @@ type ReplyController struct {
 
 func (this *ReplyController) Add() {
 	tid := this.Input().Get("tid")
-	err := models.AddReply(tid,
-		this.Input().Get("nickname"), this.Input().Get("content"))
+
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.AddReplyRedis(tid,
+			this.Input().Get("nickname"), this.Input().Get("content"))
+	default:
+		err = models.AddReply(tid,
+			this.Input().Get("nickname"), this.Input().Get("content"))
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
@@ -26,7 +35,15 @@ func (this *ReplyController) Delete() {
 		return
 	}
 	tid := this.Input().Get("tid")
-	err := models.DeleteReply(this.Input().Get("rid"))
+
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.DeleteReplyRedis(this.Input().Get("rid"))
+	default:
+		err = models.DeleteReply(this.Input().Get("rid"))
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}

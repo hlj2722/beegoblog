@@ -16,7 +16,15 @@ func (this *CategoryController) Get() {
 }
 
 func (this *CategoryController) Load() {
-	categories, err := models.GetAllCategories(true)
+	var categories []*(models.Category)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		categories, err = models.GetAllCategoriesRedis(true)
+	default:
+		categories, err = models.GetAllCategories(true)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
@@ -31,7 +39,14 @@ func (this *CategoryController) Post() {
 		return
 	}
 
-	err := models.AddCategory(name)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.AddCategoryRedis(name)
+	default:
+		err = models.AddCategory(name)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
@@ -47,7 +62,14 @@ func (this *CategoryController) Delete() {
 		return
 	}
 
-	err := models.DeleteCategory(id)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.DeleteCategoryRedis(id)
+	default:
+		err = models.DeleteCategory(id)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
