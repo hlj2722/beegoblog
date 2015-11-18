@@ -4,12 +4,14 @@ import (
 	_ "beegoblog/tools"
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
+	"strconv"
 	"strings"
 	"time"
 )
 
 ///region  CategoryRedis
 func AddCategoryRedis(name string) error {
+	beego.Alert("================AddCategoryRedis(name string) error==============")
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return err
@@ -21,7 +23,7 @@ func AddCategoryRedis(name string) error {
 	if err != nil {
 		return err
 	}
-
+	beego.Alert("================AddCategoryRedis(name string) error==============")
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Title") {
@@ -31,10 +33,11 @@ func AddCategoryRedis(name string) error {
 			}
 		}
 	}
-
+	beego.Alert("================AddCategoryRedis(name string) error==============")
 	//新增一个分类
 	guid, _ := conn.Do("HINCRBY", "category", "guid", 1) //生成Guid,并保存到键category的guid域
-	guidStr := string(guid.([]byte))
+	guidStr := strconv.FormatInt(int64(guid.(int64)), 10)
+	beego.Alert(guidStr)
 	timeNow := time.Now()
 	conn.Do("HMSET", "category",
 		guidStr+"_Id", guidStr,
@@ -47,16 +50,17 @@ func AddCategoryRedis(name string) error {
 }
 
 func DeleteCategoryRedis(id string) error {
+	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return err
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-
+	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	//暂存删除的分类
 	category, _ := conn.Do("HGET", "category", id+"_Title")
-
+	categoryStr := string(category.([]byte))
 	//删除Category
 	conn.Do("HDEL", "category",
 		id+"_Id",
@@ -65,22 +69,22 @@ func DeleteCategoryRedis(id string) error {
 		id+"_TopicCount",
 		id+"_Created",
 		id+"_Updated")
-
+	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	//删除分类下的所有文章
 	topicKeys, err := redis.Values(conn.Do("HKEYS", "topic"))
 	if err != nil {
 		return err
 	}
-
+	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	for _, topicKey := range topicKeys {
 		topicKeyStr := string(topicKey.([]byte))
 		if strings.Contains(topicKeyStr, "_Category") {
 			categoryValue, _ := conn.Do("HGET", "topic", topicKeyStr)
 			categoryValueStr := string(categoryValue.([]byte))
 
-			if categoryValueStr == category {
+			if categoryValueStr == categoryStr {
 				idStr := strings.TrimRight(topicKeyStr, "_Category")
-
+				beego.Alert(idStr)
 				conn.Do("HDEL", "topic",
 					idStr+"_Id",
 					idStr+"_Title",
@@ -98,24 +102,25 @@ func DeleteCategoryRedis(id string) error {
 
 		}
 	}
+	beego.Alert(id + "_jk")
+	beego.Alert(categoryStr)
 
 	return nil
 }
 
 func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
-	_ = isListAll
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return nil, err
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-
+	beego.Alert("================GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error)==============")
 	categoryKeys, err := redis.Values(conn.Do("HKEYS", "category"))
 	if err != nil {
 		return nil, err
 	}
-
+	beego.Alert("================GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error)==============")
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Id") {
@@ -130,10 +135,10 @@ func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
 			Created, _ := conn.Do("HGET", "category", idValueStr+"_Created")
 			Updated, _ := conn.Do("HGET", "category", idValueStr+"_Updated")
 
-			category.Id = int64(Id.(int64))
+			category.Id, _ = strconv.ParseInt(string(Id.([]byte)), 10, 0)
 			category.Title = string(Title.([]byte))
-			category.Views = int64(Views.(int64))
-			category.TopicCount = int64(TopicCount.(int64))
+			category.Views, _ = strconv.ParseInt(string(Views.([]byte)), 10, 0)
+			category.TopicCount, _ = strconv.ParseInt(string(TopicCount.([]byte)), 10, 0)
 			category.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))
 			category.Updated, _ = time.Parse("2006-01-02 15:04:05", string(Updated.([]byte)))
 

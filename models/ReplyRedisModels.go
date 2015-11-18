@@ -4,6 +4,7 @@ import (
 	_ "beegoblog/tools"
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,7 +19,7 @@ func AddReplyRedis(tid, nickname, content string) error {
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
 	guid, _ := conn.Do("HINCRBY", "reply", "guid", 1)
-	guidStr := string(guid.([]byte))
+	guidStr := strconv.FormatInt(int64(guid.(int64)), 10)
 	timeNow := time.Now()
 	conn.Do("HMSET", "reply",
 		guidStr+"_Id", guidStr,
@@ -62,8 +63,8 @@ func GetAllRepliesRedis(tid string) (replies []*Reply, err error) {
 			Created, _ := conn.Do("HGET", "reply", idValueStr+"_Created")
 			Updated, _ := conn.Do("HGET", "reply", idValueStr+"_Updated")
 
-			reply.Id = int64(Id.(int64))
-			reply.Tid = int64(Tid.(int64))
+			reply.Id, _ = strconv.ParseInt(string(Id.([]byte)), 10, 0)
+			reply.Tid, _ = strconv.ParseInt(string(Tid.([]byte)), 10, 0)
 			reply.Name = string(Name.([]byte))
 			reply.Content = string(Content.([]byte))
 			reply.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))

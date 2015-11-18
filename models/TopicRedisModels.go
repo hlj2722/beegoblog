@@ -3,12 +3,15 @@ package models
 import (
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
+	"strconv"
 	"strings"
 	"time"
 )
 
 ///region TopicRedis
 func AddTopicRedis(title, category, lable, content, attachment, author string) error {
+	beego.Alert("=======================AddTopicRedis==============================================")
+	beego.Alert(author)
 	// 处理标签
 	lable = "$" + strings.Join(strings.Split(lable, " "), "#$") + "#"
 
@@ -21,7 +24,7 @@ func AddTopicRedis(title, category, lable, content, attachment, author string) e
 
 	//新增一个文章
 	guid, _ := conn.Do("HINCRBY", "topic", "guid", 1) //生成Guid,并保存到键topic的guid域
-	guidStr := string(guid.([]byte))
+	guidStr := strconv.FormatInt(int64(guid.(int64)), 10)
 	timeNow := time.Now()
 	conn.Do("HMSET", "topic",
 		guidStr+"_Id", guidStr,
@@ -55,7 +58,8 @@ func AddTopicRedis(title, category, lable, content, attachment, author string) e
 				existsCategory = true
 				topicCountKeyStr := strings.TrimRight(categoryKeyStr, "_Title") + "_TopicCount"
 				topicCount, _ := conn.Do("HINCRBY", "category", topicCountKeyStr, 1)
-				if int(topicCount.(int)) < 1 {
+				topicCountInt := int64(topicCount.(int64))
+				if topicCountInt < 1 {
 					conn.Do("HSET", "category", topicCountKeyStr, 1)
 				}
 
@@ -67,7 +71,7 @@ func AddTopicRedis(title, category, lable, content, attachment, author string) e
 	if !existsCategory {
 		//新增一个分类
 		guid, _ := conn.Do("HINCRBY", "category", "guid", 1) //生成Guid,并保存到键category的guid域
-		guidStr := string(guid.([]byte))
+		guidStr := strconv.FormatInt(int64(guid.(int64)), 10)
 		timeNow := time.Now()
 		conn.Do("HMSET", "category",
 			guidStr+"_Id", guidStr,
@@ -105,16 +109,16 @@ func GetTopicRedis(tid string) (*Topic, error) {
 	Created, _ := conn.Do("HGET", "topic", tid+"_Created")
 	Updated, _ := conn.Do("HGET", "topic", tid+"_Updated")
 
-	topic.Id = int64(Id.(int64))
+	topic.Id, _ = strconv.ParseInt(string(Id.([]byte)), 10, 0)
 	topic.Title = string(Title.([]byte))
 	topic.Category = string(Category.([]byte))
 	topic.Lables = strings.Replace(strings.Replace(string(Lables.([]byte)), "#", " ", -1), "$", "", -1)
 	topic.Content = string(Content.([]byte))
 	topic.Attachment = string(Attachment.([]byte))
-	topic.Views = int64(Views.(int64))
+	topic.Views, _ = strconv.ParseInt(string(Views.([]byte)), 10, 0)
 	topic.Author = string(Author.([]byte))
 	topic.ReplyTime, _ = time.Parse("2006-01-02 15:04:05", string(ReplyTime.([]byte)))
-	topic.ReplyCount = int64(ReplyCount.(int64))
+	topic.ReplyCount, _ = strconv.ParseInt(string(ReplyCount.([]byte)), 10, 0)
 	topic.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))
 	topic.Updated, _ = time.Parse("2006-01-02 15:04:05", string(Updated.([]byte)))
 
@@ -208,16 +212,16 @@ func GetAllTopicsRedis(category, lable string, isDesc bool) (topics []*Topic, er
 			Created, _ := conn.Do("HGET", "topic", idValueStr+"_Created")
 			Updated, _ := conn.Do("HGET", "topic", idValueStr+"_Updated")
 
-			topic.Id = int64(Id.(int64))
+			topic.Id, _ = strconv.ParseInt(string(Id.([]byte)), 10, 0)
 			topic.Title = string(Title.([]byte))
 			topic.Category = string(Category.([]byte))
 			topic.Lables = string(Lables.([]byte))
 			topic.Content = string(Content.([]byte))
 			topic.Attachment = string(Attachment.([]byte))
-			topic.Views = int64(Views.(int64))
+			topic.Views, _ = strconv.ParseInt(string(Views.([]byte)), 10, 0)
 			topic.Author = string(Author.([]byte))
 			topic.ReplyTime, _ = time.Parse("2006-01-02 15:04:05", string(ReplyTime.([]byte)))
-			topic.ReplyCount = int64(ReplyCount.(int64))
+			topic.ReplyCount, _ = strconv.ParseInt(string(ReplyCount.([]byte)), 10, 0)
 			topic.Created, _ = time.Parse("2006-01-02 15:04:05", string(Created.([]byte)))
 			topic.Updated, _ = time.Parse("2006-01-02 15:04:05", string(Updated.([]byte)))
 

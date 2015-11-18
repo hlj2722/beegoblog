@@ -25,12 +25,27 @@ func (this *HomeController) Load() {
 	category := this.Input().Get("category")
 	lable := this.Input().Get("lable")
 
-	topics, err := models.GetAllTopics(category, lable, true)
+	var topics []*(models.Topic)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		topics, err = models.GetAllTopicsRedis(category, lable, true)
+	default:
+		topics, err = models.GetAllTopics(category, lable, true)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
 
-	categories, err := models.GetAllCategories(false)
+	var categories []*(models.Category)
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		categories, err = models.GetAllCategoriesRedis(false)
+	default:
+		categories, err = models.GetAllCategories(false)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}

@@ -23,7 +23,7 @@
 					<label>密码：</label>
 					<input type="text" class="form-control" name="pwd" value="{{User.Password}}">
 				</div>
-				<button type="submit" class="btn btn-default">修改用户</button>
+				<a href="/user"><button type="submit" class="btn btn-default" ng-click = "checkInput($event)">修改用户</button></a>
 			</form>
 		</div>
 	
@@ -32,6 +32,10 @@
 		
 		<!--AngularJS-->
 		<script type="text/javascript" src="/static/js/controllers/user.js"></script>		
+		<!---->
+		
+		<!--ToolsJS-->
+		<script type="text/javascript" src="/static/js/tools.js"></script>		
 		<!---->
 
 </html>

@@ -22,7 +22,15 @@ func (this *TopicController) Get() {
 
 func (this *TopicController) Load() {
 
-	topics, err := models.GetAllTopics("", "", false)
+	var topics []*(models.Topic)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		topics, err = models.GetAllTopicsRedis("", "", false)
+	default:
+		topics, err = models.GetAllTopics("", "", false)
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
@@ -32,7 +40,7 @@ func (this *TopicController) Load() {
 
 func (this *TopicController) Post() {
 
-	var author string
+	var author string = ""
 	if !checkAccount(this.Ctx) {
 		this.Redirect("/login", 302)
 		return
@@ -40,8 +48,6 @@ func (this *TopicController) Post() {
 		ck, err := this.Ctx.Request.Cookie("uname")
 		if err == nil {
 			author = ck.Value
-		} else {
-			return
 		}
 
 	}
@@ -72,10 +78,22 @@ func (this *TopicController) Post() {
 
 	if len(tid) == 0 {
 		//新增文章的时候加入作者
-		err = models.AddTopic(title, category, lable, content, attachment, author)
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			err = models.AddTopicRedis(title, category, lable, content, attachment, author)
+		default:
+			err = models.AddTopic(title, category, lable, content, attachment, author)
+		}
+
 	} else {
 		//如果其他人修改文章，作者不变
-		err = models.ModifyTopic(tid, title, category, lable, content, attachment)
+		switch beego.AppConfig.String("database") {
+		case "redis":
+			err = models.ModifyTopic(tid, title, category, lable, content, attachment)
+		default:
+			err = models.ModifyTopic(tid, title, category, lable, content, attachment)
+		}
+
 	}
 
 	if err != nil {
@@ -124,7 +142,16 @@ func (this *TopicController) Modify() {
 func (this *TopicController) LoadModify() {
 
 	tid := this.Input().Get("tid")
-	topic, err := models.GetTopic(tid)
+
+	var topic *(models.Topic)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		topic, err = models.GetTopicRedis(tid)
+	default:
+		topic, err = models.GetTopic(tid)
+	}
+
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)
@@ -148,14 +175,29 @@ func (this *TopicController) View() {
 func (this *TopicController) LoadView() {
 	tid := this.Input().Get("tid")
 
-	topic, err := models.GetTopic(tid)
+	var topic *(models.Topic)
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		topic, err = models.GetTopicRedis(tid)
+	default:
+		topic, err = models.GetTopic(tid)
+	}
+
 	if err != nil {
 		beego.Error(err)
 		this.Redirect("/", 302)
 		return
 	}
 
-	replies, err := models.GetAllReplies(tid)
+	var replies []*(models.Reply)
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		replies, err = models.GetAllReplies(tid)
+	default:
+		replies, err = models.GetAllReplies(tid)
+	}
+
 	if err != nil {
 		beego.Error(err)
 		return
