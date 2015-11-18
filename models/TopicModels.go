@@ -44,7 +44,7 @@ func AddTopic(title, category, lable, content, attachment, author string) error 
 		} else {
 			cate.TopicCount = 1
 		}
-
+		cate.Updated = time.Now()
 		_, err = o.Update(cate)
 
 	} else {
@@ -117,6 +117,10 @@ func ModifyTopic(tid, title, category, lable, content, attachment string) error 
 		err = qs.Filter("title", oldCate).One(cate1)
 		if err == nil {
 			cate1.TopicCount--
+			cate1.Updated = time.Now()
+			if cate1.TopicCount < 0 {
+				cate1.TopicCount = 0
+			}
 			_, err = o.Update(cate1)
 		}
 
@@ -124,6 +128,9 @@ func ModifyTopic(tid, title, category, lable, content, attachment string) error 
 		err = qs.Filter("title", category).One(cate2)
 		if err == nil {
 			cate2.TopicCount++
+			if cate1.TopicCount < 1 {
+				cate1.TopicCount = 1
+			}
 			cate2.Updated = time.Now()
 			_, err = o.Update(cate2)
 		} else {
@@ -167,6 +174,7 @@ func DeleteTopic(tid string) error {
 	err = qs.Filter("title", oldCate).One(cate)
 	if err == nil {
 		cate.TopicCount--
+		cate.Updated = time.Now()
 		_, err = o.Update(cate)
 	}
 

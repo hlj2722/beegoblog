@@ -31,10 +31,14 @@ func (this *ReplyController) Add() {
 }
 
 func (this *ReplyController) Delete() {
+
+	tid := this.Input().Get("tid")
+	beego.Alert(tid)
+	beego.Alert(tid)
+
 	if !checkAccount(this.Ctx) {
 		return
 	}
-	tid := this.Input().Get("tid")
 
 	var err error
 	switch beego.AppConfig.String("database") {

@@ -89,7 +89,7 @@ func (this *TopicController) Post() {
 		//如果其他人修改文章，作者不变
 		switch beego.AppConfig.String("database") {
 		case "redis":
-			err = models.ModifyTopic(tid, title, category, lable, content, attachment)
+			err = models.ModifyTopicRedis(tid, title, category, lable, content, attachment)
 		default:
 			err = models.ModifyTopic(tid, title, category, lable, content, attachment)
 		}
@@ -119,7 +119,14 @@ func (this *TopicController) Delete() {
 		return
 	}
 
-	err := models.DeleteTopic(this.Input().Get("tid"))
+	var err error
+	switch beego.AppConfig.String("database") {
+	case "redis":
+		err = models.DeleteTopicRedis(this.Input().Get("tid"))
+	default:
+		err = models.DeleteTopic(this.Input().Get("tid"))
+	}
+
 	if err != nil {
 		beego.Error(err)
 	}
@@ -193,7 +200,7 @@ func (this *TopicController) LoadView() {
 	var replies []*(models.Reply)
 	switch beego.AppConfig.String("database") {
 	case "redis":
-		replies, err = models.GetAllReplies(tid)
+		replies, err = models.GetAllRepliesRedis(tid)
 	default:
 		replies, err = models.GetAllReplies(tid)
 	}

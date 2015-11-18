@@ -24,6 +24,8 @@
 						<th>#</th>
 						<th>分类名称</th>
 						<th>文章数量</th>
+						<th>创建时间</th>	
+						<th>更新时间</th>
 						<th>操作</th>
 					</tr>
 				</thead>
@@ -32,9 +34,11 @@
 						<td>{{x.Id}}</td>
 						<td>{{x.Title}}</td>
 						<td>{{x.TopicCount}}</td>
+						<td>{{x.Created}}</td>
+						<td>{{x.Updated}}</td>
 						<td>
 							<a href="/category/delete?id={{x.Id}}" 
-							onclick = "return confirm('您确认要删除该分类的[所有文章]吗?')">删除分类和文章</a>
+							onclick = "return confirm('您确认要删除分类下的[所有文章]吗?')">删除分类和文章</a>
 						</td>
 					</tr>
 				</tbody>

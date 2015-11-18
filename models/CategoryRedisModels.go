@@ -11,7 +11,6 @@ import (
 
 ///region  CategoryRedis
 func AddCategoryRedis(name string) error {
-	beego.Alert("================AddCategoryRedis(name string) error==============")
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return err
@@ -23,7 +22,6 @@ func AddCategoryRedis(name string) error {
 	if err != nil {
 		return err
 	}
-	beego.Alert("================AddCategoryRedis(name string) error==============")
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Title") {
@@ -33,11 +31,10 @@ func AddCategoryRedis(name string) error {
 			}
 		}
 	}
-	beego.Alert("================AddCategoryRedis(name string) error==============")
 	//新增一个分类
 	guid, _ := conn.Do("HINCRBY", "category", "guid", 1) //生成Guid,并保存到键category的guid域
 	guidStr := strconv.FormatInt(int64(guid.(int64)), 10)
-	beego.Alert(guidStr)
+
 	timeNow := time.Now()
 	conn.Do("HMSET", "category",
 		guidStr+"_Id", guidStr,
@@ -50,32 +47,29 @@ func AddCategoryRedis(name string) error {
 }
 
 func DeleteCategoryRedis(id string) error {
-	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	conn, err := redis.Dial("tcp", "localhost:6379")
 	if err != nil {
 		return err
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	beego.Alert("================DeleteCategoryRedis(id string) error==============")
 	//暂存删除的分类
 	category, _ := conn.Do("HGET", "category", id+"_Title")
 	categoryStr := string(category.([]byte))
 	//删除Category
-	conn.Do("HDEL", "category",
-		id+"_Id",
-		id+"_Title",
-		id+"_Views",
-		id+"_TopicCount",
-		id+"_Created",
-		id+"_Updated")
-	beego.Alert("================DeleteCategoryRedis(id string) error==============")
+	conn.Do("HDEL", "category", id+"_Id")
+	conn.Do("HDEL", "category", id+"_Title")
+	conn.Do("HDEL", "category", id+"_Views")
+	conn.Do("HDEL", "category", id+"_TopicCount")
+	conn.Do("HDEL", "category", id+"_Created")
+	conn.Do("HDEL", "category", id+"_Updated")
+
 	//删除分类下的所有文章
 	topicKeys, err := redis.Values(conn.Do("HKEYS", "topic"))
 	if err != nil {
 		return err
 	}
-	beego.Alert("================DeleteCategoryRedis(id string) error==============")
+
 	for _, topicKey := range topicKeys {
 		topicKeyStr := string(topicKey.([]byte))
 		if strings.Contains(topicKeyStr, "_Category") {
@@ -84,26 +78,23 @@ func DeleteCategoryRedis(id string) error {
 
 			if categoryValueStr == categoryStr {
 				idStr := strings.TrimRight(topicKeyStr, "_Category")
-				beego.Alert(idStr)
-				conn.Do("HDEL", "topic",
-					idStr+"_Id",
-					idStr+"_Title",
-					idStr+"_Category",
-					idStr+"_Lables",
-					idStr+"_Content",
-					idStr+"_Attachment",
-					idStr+"_Views",
-					idStr+"_Author",
-					idStr+"_ReplyTime",
-					idStr+"_ReplyCount",
-					idStr+"_Created",
-					idStr+"_Updated")
+
+				conn.Do("HDEL", "topic", idStr+"_Id")
+				conn.Do("HDEL", "topic", idStr+"_Title")
+				conn.Do("HDEL", "topic", idStr+"_Category")
+				conn.Do("HDEL", "topic", idStr+"_Lables")
+				conn.Do("HDEL", "topic", idStr+"_Content")
+				conn.Do("HDEL", "topic", idStr+"_Attachment")
+				conn.Do("HDEL", "topic", idStr+"_Views")
+				conn.Do("HDEL", "topic", idStr+"_Author")
+				conn.Do("HDEL", "topic", idStr+"_ReplyTime")
+				conn.Do("HDEL", "topic", idStr+"_ReplyCount")
+				conn.Do("HDEL", "topic", idStr+"_Created")
+				conn.Do("HDEL", "topic", idStr+"_Updated")
 			}
 
 		}
 	}
-	beego.Alert(id + "_jk")
-	beego.Alert(categoryStr)
 
 	return nil
 }
@@ -115,12 +106,12 @@ func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
 	}
 	conn.Do("AUTH", beego.AppConfig.String("requirepass"))
 	defer conn.Close()
-	beego.Alert("================GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error)==============")
+
 	categoryKeys, err := redis.Values(conn.Do("HKEYS", "category"))
 	if err != nil {
 		return nil, err
 	}
-	beego.Alert("================GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error)==============")
+
 	for _, categoryKey := range categoryKeys {
 		categoryKeyStr := string(categoryKey.([]byte))
 		if strings.Contains(categoryKeyStr, "_Id") {
@@ -144,7 +135,8 @@ func GetAllCategoriesRedis(isListAll bool) (categories []*Category, err error) {
 
 			if isListAll {
 				categories = append(categories, category)
-			} else if category.TopicCount >= 0 {
+
+			} else if category.TopicCount > 0 {
 				categories = append(categories, category)
 			}
 

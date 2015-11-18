@@ -17,10 +17,13 @@
 					<tr>
 						<th>#</th>
 						<th>标题</th>
+						<th>分类</th>
+						<th>作者</th>
 						<th>浏览数</th>
 						<th>评论数</th>
 						<th>创建时间</th>	
-						<th>更新时间</th>							
+						<th>更新时间</th>
+						<th>最近评论时间</th>								
 						<th>操作</th>
 					</tr>
 				</thead>
@@ -28,10 +31,14 @@
 					<tr ng-repeat="x in Topics">
 						<td>{{x.Id}}</td>
 						<td><a href="/topic/view?tid={{x.Id}}">{{x.Title}}</a></td>
+						<td>{{x.Category}}</td>
+						<td>{{x.Author}}</td>
 						<td>{{x.Views}}</td>
 						<td>{{x.ReplyCount}}</td>
 						<td>{{x.Created}}</td>
 						<td>{{x.Updated}}</td>
+						<td>{{x.ReplyTime}}</td>
+						
 						<td>
 							<a href="/topic/modify?tid={{x.Id}}">修改</a>
 							<a href="/topic/delete?tid={{x.Id}}">删除</a>
