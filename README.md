@@ -89,7 +89,7 @@ sudo gedit $GOPATH/src/beegoblog/conf/app.conf
 <pre>
 添加配置到app.conf文件末尾并保存：
 database = redis
-requirepass = 123   //Redis验证密码，与6.3保持一致即可
+requirepass = 123   //Redis验证密码，与4.3保持一致即可
 </pre>
 
 </br>
