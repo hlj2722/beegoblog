@@ -48,7 +48,7 @@ git clone https://github.com/hopehook/beegoblog.git
 go get github.com/astaxie/beego
 go get github.com/Unknwon/com
 go get github.com/mattn/go-sqlite3
-go get github.com/garyburd/redigo/redis
+go get github.com/garyburd/redigo/redis   
 </pre>
 
 ######3 运行本博客
