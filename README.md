@@ -24,9 +24,9 @@ sudo gedit /etc/profile
 </pre>
 <pre>
 添加配置到profile文件末尾并保存：
-export PATH=$PATH:/usr/local/go/bin
 export GOPATH=[yourOwnGopath]         //[yourOwnGopath]是自己选择的golang项目目录
-export GOBIN=$GOPATH/bin
+export GOBIN=/usr/local/go/bin:${GOPATH//://bin:}/bin 　//"/usr/local/go/bin"是golang安装目录下的bin目录
+export PATH=$PATH:$GOBIN
 </pre>
 
 
