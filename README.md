@@ -1,12 +1,10 @@
-Beego Blog[![Build Status](https://travis-ci.org/hopehook/beegoblog.svg)](https://travis-ci.org/hopehook/beegoblog)
+Beego Blog[![Build Status](https://travis-ci.org/hopehook/beegoblog.svg)](https://travis-ci.org/hopehook/beegoblog) [![GoDoc](https://godoc.org/github.com/hopehook/beegoblog?status.svg)](https://godoc.org/github.com/hopehook/beegoblog)
 =====================
-
 
 ###Ubuntu下配置和运行本博客指南
 (Windows上基本类似)
 
 ######1 安装配置Golang 
-[参考来源](https://golang.org:https://golang.org/doc/install)
 
 - 1.1 移除已经存在的老版本(安装的过程反过来做)
 
@@ -106,7 +104,7 @@ html/JS/CSS + golang + DB
 
 ######1 UI
 <pre>
-AngularJS;jQuery
+AngularJS + jQuery
 </pre>
 
 ######2 后台
@@ -116,7 +114,7 @@ Beego
 
 ######3 数据库
 <pre>
-SQLite Or Redis
+SQLite | Redis
 </pre>
 
 
