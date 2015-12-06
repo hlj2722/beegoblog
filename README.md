@@ -1,4 +1,4 @@
-Beego Blog
+Beego Blog[![Build Status](https://travis-ci.org/hopehook/beegoblog.svg)](https://travis-ci.org/hopehook/beegoblog)
 =====================
 
 
