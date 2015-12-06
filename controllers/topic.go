@@ -6,7 +6,7 @@ import (
 
 	"github.com/astaxie/beego"
 
-	"beegoblog/models"
+	"github.com/hopehook/beegoblog/models"
 )
 
 type TopicController struct {

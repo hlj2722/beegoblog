@@ -1,7 +1,7 @@
 package models
 
 import (
-	_ "beegoblog/tools"
+	_ "github.com/hopehook/beegoblog/tools"
 	"github.com/astaxie/beego"
 	"github.com/garyburd/redigo/redis"
 	"strconv"

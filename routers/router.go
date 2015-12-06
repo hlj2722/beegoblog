@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"beegoblog/controllers"
-	"beegoblog/models"
+	"github.com/hopehook/beegoblog/controllers"
+	"github.com/hopehook/beegoblog/models"
 	"github.com/astaxie/beego"
 )
 

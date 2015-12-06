@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "beegoblog/routers"
+	_ "github.com/hopehook/beegoblog/routers"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
