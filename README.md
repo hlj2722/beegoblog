@@ -1,4 +1,4 @@
-Beego Blog[![Build Status](https://travis-ci.org/hopehook/beegoblog.svg)](https://travis-ci.org/hopehook/beegoblog) [![GoDoc](https://godoc.org/github.com/hopehook/beegoblog?status.svg)](https://godoc.org/github.com/hopehook/beegoblog)
+Beego Blog Demo[![Build Status](https://travis-ci.org/hopehook/beegoblog.svg)](https://travis-ci.org/hopehook/beegoblog) [![GoDoc](https://godoc.org/github.com/hopehook/beegoblog?status.svg)](https://godoc.org/github.com/hopehook/beegoblog)
 =====================
 
 ###Ubuntu下配置和运行本博客指南
